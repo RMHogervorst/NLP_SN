@@ -1,0 +1,26 @@
+---
+title: "word2vec2"
+author: "Roel M. Hogervorst"
+date: "March 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This page describes the word2vec features of 
+
+First we load the functions created before.
+We need to pull out the capital names per line. 
+
+```{r}
+source("R/word2vec.R")
+library(tidytext)
+library(tidyverse)
+```
+Load first 250, and last 250.
+```{r}
+df_sn <- read_rds("df_sn.RDS")
+```
+

@@ -1,6 +1,9 @@
 ---
 title: "word2vec like julia"
-output: github_document
+output: 
+  html_document: 
+    fig_height: 7
+    fig_width: 10
 ---
 
 ```{r setup, include=FALSE}
@@ -27,7 +30,7 @@ sn_complete <- read_rds("df_sn.RDS")
 dim(sn_complete)
 format(object.size(sn_complete),units = "Mb")
 set.seed(13455)
-sn_sample <- sample_n(sn_complete, 5)
+sn_sample <- sample_n(sn_complete, 200)
 rm(sn_complete) # make some space
 ```
 
@@ -70,7 +73,7 @@ slide_windows <- function(tbl, doc_var, window_size) {
 
 First have to unpack the nested dataframe. 
 
-```{r}
+```{r unpack into tidy pmi}
 
 tidy_pmi <- sn_sample %>%
     unnest(text) %>% 
@@ -84,7 +87,7 @@ tidy_pmi <- sn_sample %>%
 ```
 
 
-```{r}
+```{r tidy word vectors}
 tidy_word_vectors <- tidy_pmi %>%
     widely_svd(item1, item2, pmi, nv = 256, maxit = 1000)
 ```
@@ -97,10 +100,13 @@ nearest_synonyms <- function(df, token) {
         widely(~ . %*% (.[token, ]), sort = TRUE)(item1, dimension, value) %>%
         select(-item2)
 }
+```
 
+Let's try to find some synonyms
+```{r synonym finding, eval=FALSE}
 tidy_word_vectors %>%
     nearest_synonyms("microsoft")
-# in sample not: breach python, virus
+# in sample not: breach python, virus # ow it is
 tidy_word_vectors %>%
     nearest_synonyms("apple")
 tidy_word_vectors %>%
@@ -108,15 +114,71 @@ tidy_word_vectors %>%
 tidy_word_vectors %>%
     nearest_synonyms("computer")  # not: bitcoin, crypto, crypocurrency
 tidy_word_vectors %>%
-    nearest_synonyms("safe")
+    nearest_synonyms("safe") #
+# secure, changing, encrypted, 
+# bitcoin: cryptolocker, payment, worth, dollars, visa, price
+# crypto: technology, cryptography, encryption, implementaiton, beautiful, symmetric
 tidy_word_vectors %>%
     nearest_synonyms("program") # broken, fail, owned, open,program
+# broken: badley, massive, anything, trouble, crypto, fbi, nsa
+# open: pictures, financial, google, signal, has creating, skype  (being owned by someone)
+tidy_word_vectors %>%
+    nearest_synonyms("steve")
+# steve: leo, yeah, i, you, it's, right, just, yes, yup (the way he talks)
+tidy_word_vectors %>%
+    nearest_synonyms("leo")
+# leo: steve, yeah, i, you, right, oh, yes,
+tidy_word_vectors %>%
+    nearest_synonyms("gibson") # only used at start and finish
+# mr chief explainer, steven, recored, corperation
+tidy_word_vectors %>%
+    nearest_synonyms("spinrite") # clearly often used with the 
+# same sentences: spinrite drive, recovery, maintenance, drives, world's
+# best disk 
+#tidy_word_vectors %>%
+#    nearest_synonyms("steve")
+#tidy_word_vectors %>%
+#    nearest_synonyms("hard")
+tidy_word_vectors %>%
+    nearest_synonyms("web")
+tidy_word_vectors %>%
+    nearest_synonyms("podcast")
+#tidy_word_vectors %>%
+#    nearest_synonyms("netcast")# does not exist
+tidy_word_vectors %>%
+    nearest_synonyms("guy") # he's, named, man, himself, chief, steven, he, him, who.
+tidy_word_vectors %>%
+    nearest_synonyms("guys") # researchers, these, people, presentation,microsoft, tools
+#tidy_word_vectors %>%
+#    nearest_synonyms("girl") # not in there
+#tidy_word_vectors %>%
+#    nearest_synonyms("woman") # not in there, neither women
+tidy_word_vectors %>%
+    nearest_synonyms("man")# middle, gibson, mr, chief, explainer, creator, corperation
+# men does not exist
+#tidy_word_vectors %>%
+#    nearest_synonyms("female") # not in there
+tidy_word_vectors %>%
+    nearest_synonyms("male") # voice, male, jim, games, military, strategy, 
+# basic, bet, young
+
+
+tidy_word_vectors %>%
+    nearest_synonyms("bad") # arbitrary, an, big, good, problem, sites, guys, news
+tidy_word_vectors %>%
+    nearest_synonyms("good") # great, security, had, yes, again, think
+tidy_word_vectors %>%
+    nearest_synonyms("he") # verbs: who, says, said, was, about
+tidy_word_vectors %>%
+    nearest_synonyms("she") # he, bob, sally, who, wife, where, client
+tidy_word_vectors %>%
+    nearest_synonyms("guy")
 ```
 
 
 
 
-What are some analogies we can find in this Hacker News corpus? Let’s write a little function that will find the answer to token1 - token2 + token 3 = ???.
+What are some analogies we can find in this podcast corpus? Let’s write a little function that will find the answer to token1 - token2 + token 3 = ???.
 ```{r}
 analogy <- function(df, token1, token2, token3) {
     df %>%
@@ -124,9 +186,61 @@ analogy <- function(df, token1, token2, token3) {
         select(-item2)
     
 }
+```
 
+```{r finding analogies}
 ## operating systems
 tidy_word_vectors %>%
-    analogy("osx", "apple", "microsoft")
+    analogy("mac", "apple", "microsoft") # xp, vulnerabilities, pc
+tidy_word_vectors %>%
+    analogy("computer", "microsoft", "apple") #  apple, computer, ios, iphone
+tidy_word_vectors %>%
+    analogy("steve", "spinrite", "apple")
+tidy_word_vectors %>%
+    analogy("steve", "spinrite", "microsoft")
+tidy_word_vectors %>%
+    analogy("computer", "wifi", "bluetooth") # machine, off, existing, radio
+tidy_word_vectors %>% analogy("pc", "screen", "computer")
+# pc minus a screen, plus computer is virtual, vmware, workstation, server
 ```
+
+```{r}
+tidy_word_vectors %>%
+    analogy("steve", "spinrite", "leo")
+```
+
+
+
+Since we have done a singular value decomposition, we can use our word vectors to understand what principal components explain the most variation in the Hacker News corpus.
+```{r plot principle components}
+tidy_word_vectors %>%
+    filter(dimension <= 24) %>%
+    group_by(dimension) %>%
+    top_n(12, abs(value)) %>%
+    ungroup %>%
+    mutate(item1 = reorder(item1, value)) %>%
+    group_by(dimension, item1) %>%
+    arrange(desc(value)) %>%
+    ungroup %>%
+    mutate(item1 = factor(paste(item1, dimension, sep = "__"), 
+                         levels = rev(paste(item1, dimension, sep = "__"))),
+           dimension = factor(paste0("Dimension ", dimension),
+                              levels = paste0("Dimension ", as.factor(1:24)))) %>%
+    ggplot(aes(item1, value, fill = dimension)) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~dimension, scales = "free_y", ncol = 4) +
+    scale_x_discrete(labels = function(x) gsub("__.+$", "", x)) +
+    coord_flip() +
+    labs(x = NULL, y = "Value",
+         title = "First 24 principal components of the security now corpus",
+         subtitle = "Top words contributing to the components that explain the most variation")
+         
+```
+
+First dimension describes general leo, yeah, steve, etc. 
+dimension 3 seems to describe earlier episodes, dim4 describes end of podcast
+
+13 is about network and routers. dim 16, encryption ssl, cipher, code attacker
+dim 19 certificates. dim 22 surveillance and nation states
+
 
