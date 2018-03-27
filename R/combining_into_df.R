@@ -45,6 +45,7 @@ system.time(
 ## read_lines: user 0.61, system 1.05, elapsed 1.69  (crazy slowdown by print!)
 # object is object.size(df_sn)   57425648 bytes
 # weird: now: user 2.52, system 2.67. elapsed 26.11
+# 0.537   0.147   0.999
 # Seems that it was more a memory allocation thingy. if you run it twice you
 # get faster results because the memory was already allocated.
 df_sn %<>%
@@ -55,9 +56,9 @@ df_sn %<>%
            hosts =map(transcript, get_hosts) ,  # these are multiples, and not single character vec
            teaser = map_chr(transcript, get_teaser),
            title =map_chr(transcript, get_title),
-           text = map(transcript, extract_voices)) %>%
+           text = map(transcript, combine_voices_into_df)) %>%
     select(-transcript)
 
-write_rds(df_sn, "df_sn.RDS")
 
+write_rds(df_sn, "df_sn.RDS")
 

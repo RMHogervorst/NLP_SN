@@ -34,9 +34,10 @@ get_description <- function(lines){
 #Hosts
 get_hosts <- function(lines){
     result <- lines[1:20] %>%
-        .[grepl("^HOSTS:",.)] %>%
-        sub("^HOSTS:", "",.) %>%
+        .[grepl("^HOSTS:|^SPEAKERS:",.)] %>%
+        sub("^HOSTS:|^SPEAKERS:", "",.) %>%
         gsub("\t", "",.) %>%
+        str_trim("both") %>%
         strsplit("&")
     if(length(result)==0){result <- NA}
     result
@@ -113,3 +114,31 @@ extract_voices <- function(lines){
 
 #testfile <- extract_voices(sample)
 
+
+unify_names <- function(name) {
+    case_when(name == "LEO LAPORTE" ~  "LEO",
+              name ==   "STEVE GIBSON" ~ "STEVE",
+              name == "MIKE ELGAN" ~ "MIKE",
+              name =="FATHER ROBERT BALLECER" ~ "PADRE",
+              name == "JASON HOWELL" ~ "JASON",
+              name == "FR. ROBERT" ~ "PADRE", # yes it's the same person
+              name == "MARC MAIFFRET" ~ "MARC",
+              name == "TOM MERRITT" ~ "TOM",
+              name == "IYAZ AKHTAR" ~ "IYAZ",
+              TRUE ~ NA_character_
+    )
+}
+
+make_text_df <- . %>%
+    data_frame(linenr = seq_len(length(.)),
+               text = .) %>%
+    mutate(
+        speaker = str_extract(text, "^[\"A-Z ]{2,}:") %>%
+            gsub(pattern = ":","", .) %>%
+            str_trim("both"),
+        text = str_replace(text, "^[\"A-Z ]{2,}:", "") %>%
+            str_trim("both"),
+        speaker = unify_names(speaker)
+    )
+
+combine_voices_into_df <- . %>% extract_voices() %>% make_text_df()
