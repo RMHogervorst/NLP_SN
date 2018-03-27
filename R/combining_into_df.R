@@ -1,11 +1,10 @@
 ## put into dataframe
 ## found this idea in excellent tidytextmining book by Julia Silge and David Robinson (tidytextmining.com)
 ## to see where we are this function wraps read_lines and prints
-library(magrittr)
-library(dplyr)
+library(tidyverse)
 library(purrr)
 library(readr)
-
+source("R/extractors.R")
 # a function that deletes files that are probably html error codes.
 # also
 delete_html_empties <- function(file, debug = FALSE){
@@ -25,6 +24,7 @@ delete_html_empties <- function(file, debug = FALSE){
 all_txt_in_folder <- dir(path = "data/", pattern = "*.txt", full.names = TRUE)
 
 walk(all_txt_in_folder, delete_html_empties)
+all_txt_in_folder <- dir(path = "data/", pattern = "*.txt", full.names = TRUE)
 
 # A read lines copy that also prints the filename to the console,
 # useful if you don't know where your program fails.
@@ -52,11 +52,11 @@ df_sn %<>%
     mutate(source = map_chr(transcript, get_source),
            date = map_chr(transcript, get_date), #
            description = map_chr(transcript, get_description) ,
-           ep_nr =map_int(transcript, get_episode_number) ,
-           hosts =map(transcript, get_hosts) ,  # these are multiples, and not single character vec
+           ep_nr = map_int(transcript, get_episode_number) ,
+           hosts = map(transcript, get_hosts) ,  # these are multiples, and not single character vec
            teaser = map_chr(transcript, get_teaser),
-           title =map_chr(transcript, get_title),
-           text = map(transcript, combine_voices_into_df)) %>%
+           title = map_chr(transcript, get_title),
+           text =  map(transcript, combine_voices_into_df)) %>%
     select(-transcript)
 
 

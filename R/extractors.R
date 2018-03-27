@@ -75,6 +75,7 @@ get_source <- function(lines){
 # SOURCE, DESCRIPTION, SHOW TEASE, ARCHIVE
 
 extract_voices <- function(lines){
+    lines <- stringi::stri_enc_toutf8(lines)
     lines_in <- lines[10:length(lines)]
     lines_without_empty <- lines_in[!grepl("^$",lines_in)]
     MATCHSTRING <- "^DATE|^TITLE|^EPISODE|^HOST|^SOURCE|^DESCRIPTION|^Copyright|^DESCRIPTION|^SHOW TEASE|^ARCHIVE|^GIBSON RESEARCH CORPORATION"
@@ -116,6 +117,10 @@ extract_voices <- function(lines){
 
 
 unify_names <- function(name) {
+    name <- name %>%
+    stringi::stri_enc_toutf8() %>%
+        str_trim(side = "both")
+
     case_when(name == "LEO LAPORTE" ~  "LEO",
               name ==   "STEVE GIBSON" ~ "STEVE",
               name == "MIKE ELGAN" ~ "MIKE",
@@ -125,7 +130,7 @@ unify_names <- function(name) {
               name == "MARC MAIFFRET" ~ "MARC",
               name == "TOM MERRITT" ~ "TOM",
               name == "IYAZ AKHTAR" ~ "IYAZ",
-              TRUE ~ NA_character_
+              TRUE ~ name
     )
 }
 
@@ -135,10 +140,13 @@ make_text_df <- . %>%
     mutate(
         speaker = str_extract(text, "^[\"A-Z ]{2,}:") %>%
             gsub(pattern = ":","", .) %>%
-            str_trim("both"),
+            str_trim(side = "both"),
         text = str_replace(text, "^[\"A-Z ]{2,}:", "") %>%
-            str_trim("both"),
+            str_trim(side = "both"),
         speaker = unify_names(speaker)
     )
 
-combine_voices_into_df <- . %>% extract_voices() %>% make_text_df()
+combine_voices_into_df <- . %>%
+    stringi::stri_enc_toutf8() %>%
+    extract_voices() %>%
+    make_text_df()
