@@ -1,0 +1,52 @@
+---
+title: "typical words"
+author: "Roel M. Hogervorst"
+date: "March 29, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+select steve vs leo. 
+
+what words more like steve, less like leo.
+
+
+```{r}
+library(tidyverse)
+library(tidytext)
+df_sn <- readRDS("df_sn.RDS")
+```
+
+select only steve and leo phrases.
+
+```{r}
+steveleo <- 
+    df_sn %>% 
+    unnest(text) %>% 
+    filter(speaker %in% c("LEO", "STEVE"))
+```
+
+
+tf_idf per ep, 
+per speaker
+
+```{r}
+steveleo_words <-
+    steveleo %>% 
+    unnest_tokens(output = "word",input = text) %>%
+    count(speaker, word, sort = TRUE) %>% 
+    ungroup() %>% 
+    bind_tf_idf(word, speaker, n)
+steveleo_words %>% 
+    mutate(word = fct_reorder(word, tf_idf)) %>% 
+    group_by(speaker) %>% 
+    top_n(15) %>% 
+    ggplot(aes(word,tf_idf,  fill = speaker))+
+    geom_col()+
+    facet_wrap(~speaker, scales = "free_y")+
+    coord_flip()+
+    labs(title = "Typical word use of Steve vs Leo",
+         caption = "a text analysis of Security Now! transcripts by Roel M. Hogervorst")
+```
