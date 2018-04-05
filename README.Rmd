@@ -9,11 +9,12 @@ from security now (SN) episodes.
 
 SN is a highly informative podcast by Steve Gibson and Leo Laporte about 
 security related news and or explanations of concepts. The series is long
-running almost 13 years at the time of writing. 
+running for almost 13 years at the time of writing. 
 
 Steve has someone transcribe all of the audio files, that means we can
 use NLP tools to analyze all of the text. 
 
+I've only listened to the last few years. 
 
 example of top of [file](https://www.grc.com/sn/sn-020.txt):
 ```
