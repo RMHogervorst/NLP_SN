@@ -14,3 +14,13 @@ network analyses of words
 
 
 Correlation between words, per person.
+
+
+per episode  extract text, parse per sentence, color by host, 
+sentiment higest. geom text that word?
+
+nerdscore per episode. topicmodeling on entire corpus (will crash, so 1/4?)
+huse high socring words, or dividing words (Very much one topic very much not other topic.)  cclassify new episodes on nerdscore/ topics, 
+worse word2vec to find likewise words.
+
+Is entiment changes over time?

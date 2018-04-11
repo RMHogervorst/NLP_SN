@@ -1,0 +1,138 @@
+extracting\_features
+================
+
+intro
+-----
+
+In the [scraper description](SCRAPER_description.md) I described how the files are downloaded.
+
+I now want to:
+
+-   remove all the empty pages (where CURL returned a html file)
+-   read in all the files into 1 dataframe (a row per file)
+-   apply small functions to every row
+    -   extract the episode number (f.i. 20)
+    -   extract episode name (f.i. A serious new windows vulnerability)
+    -   extract date of episode (unfortunately written out in American[1] )
+    -   extract description (a short text spoken on start of episode)
+    -   extract hosts (f.i. and in the most cases Steve Gibson & Leo Laporte)
+    -   extract teaser (sometimes included)
+    -   extract source link (these transcripts are very thorough and even have links)
+    -   extract voices (a seperate row for everytime someone speaks, ideally with source).
+
+### Example file
+
+As you can see below, the files are very structured, which is what I am depending on. Almost all lines have an all CAPS start with the speaker.
+
+example of top of [file](https://www.grc.com/sn/sn-020.txt "link to sourcefile on grc.com"):
+
+    GIBSON RESEARCH CORPORATION http://www.GRC.com/
+
+    SERIES:     Security Now!
+    EPISODE:        #20
+    DATE:       December 29, 2005
+    TITLE:      A SERIOUS new Windows vulnerability - and Listener Q&A #2
+    SPEAKERS:   Steve Gibson & Leo Laporte
+    SOURCE FILE:    http://media.GRC.com/sn/SN-020.mp3
+    FILE ARCHIVE:   http://www.GRC.com/securitynow.htm
+        
+    DESCRIPTION:  On December 28th a serious new Windows vulnerability appeared and was immediately exploited by a growing number of malicious web sites to install malware.  Many worse viruses and worms are expected soon.  We start off discussing this, and our show notes provide a quick necessary workaround until Microsoft provides a patch.  Then we spend the next 45 minutes answering and discussing interesting listener questions.
+
+    LEO LAPORTE:  This is Security Now! with Steve Gibson, Episode 20, for December 29, 2005.
+
+    STEVE GIBSON:  Last episode of this year.
+
+    LEO:  The last episode of 2005.  And we've done 20 of them.
+
+    STEVE:  Yeah.
+
+Dealing with not existing files textfiles.
+------------------------------------------
+
+I downloaded the files with curl in a way that doesn't care what is returned, in some cases a 404 status page (not found) was returned.
+
+first few lines:
+
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <title>404 - File or directory not found.</title>
+    <style type="text/css">
+
+We might want to delete those first (ideally but in reality this is something I found out later)
+
+``` r
+# a function that deletes files that are probably html error codes.
+# also
+delete_html_empties <- function(file, debug = FALSE){
+    if(debug) print(file)
+    sample_doc <- read_lines(file = file, n_max = 1)
+    if(length(sample_doc)==0){
+        message("deleting sample ", file)
+        file.remove(file)
+    }else if(grepl(pattern = "^<DOCTYPE html", sample_doc )){
+        # it failed here, because the control flow of the program tried to do something with the
+        # file, but it was already deleted.
+        message("deleting sample ", file)
+        file.remove(file)
+    }
+
+}
+# make a vector of all the .txt files in the folder
+all_txt_in_folder <- dir(path = "data/", pattern = "*.txt", full.names = TRUE)
+# go through all files and delete the ones that are actually html
+walk(all_txt_in_folder, delete_html_empties) 
+```
+
+read in all the files into 1 dataframe (a row per file)
+-------------------------------------------------------
+
+First I just read in every file, but it broke somewhere along the lines, because I didn't remove the 'empty' files (404 html pages). So I added a print statement before each read. I thought this slowed down the process, but that wasn't the case R has trouble allocating enough memory for the entire thing (every row in the transcript column contains a lot of text, but the original tibble contained only a column with the path). If you want this very speedy you might first create a tibble with all the rows filled with a large text file (So R knows how much memory to allocate) and then mutate that column.
+
+``` r
+# I like to see where I am, if the read function breaks
+# somewhere.
+read_lines2 <- function(file){
+    print(file)
+    read_lines(file)
+}
+# I wanted to know how long it took, but the system.time function is not needed.
+#system.time(
+    df_sn <- all_txt_in_folder %>%
+        tibble(path = .) %>%
+        mutate(transcript = map(path, read_lines))
+#)  end bracket of system time. WE could have piped this part I think.
+```
+
+apply small functions to every row
+----------------------------------
+
+All the functions are in the R/extractors.R file. The general principle is this:
+
+The important information is at the top of the file, that is probably in the first 20 lines. In those lines, search for the line with a keyword, remove that keyword, return the result without leading and trailing spaces. Deal with not finding results.
+
+For example the get\_source function:
+
+``` r
+get_source <- function(lines){
+    result <- lines[1:20] %>%
+        .[grepl("^SOURCE:",.)] %>%
+        sub("^SOURCE:\t+", "",.) %>%
+        str_trim()
+    if(length(result)==0){result <- NA}
+    result
+}
+```
+
+However to extract the voices I had to work a bit harder. I've used the same approach as in the [TNG project](https://github.com/RTrek/startrekTNGdataset), and searched for characteristics in the file, and then combined the results.
+
+So here is what I did (see also the [extractorsfile](extractors.R) in no particular order:
+
+-   remove all empty lines
+-   find lines that start with capitals and are not EPISODE etc. and so are the hosts, f.i.: LEO, STEVE and extract the text only
+-   Find hostnames and unify their names (the file calls their full name first and first or title later: LEO LAPORTE = LEO, PADRE = FATHER ROBERT BALLECER)
+-   create a linenumber
+-   combine the lines that belong together (if someone has multiple paragraphs I throw them together)
+
+[1] That means non-international

@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 ## intro
 
-In the [scraper description](SCRAPER_description) I described how the files
+In the [scraper description](SCRAPER_description.md) I described how the files
 are downloaded.
 
 I now want to:
@@ -90,11 +90,10 @@ delete_html_empties <- function(file, debug = FALSE){
     }
 
 }
-
+# make a vector of all the .txt files in the folder
 all_txt_in_folder <- dir(path = "data/", pattern = "*.txt", full.names = TRUE)
-
-walk(all_txt_in_folder, delete_html_empties)
-
+# go through all files and delete the ones that are actually html
+walk(all_txt_in_folder, delete_html_empties) 
 ```
 
 
@@ -128,7 +127,9 @@ read_lines2 <- function(file){
 
 All the functions are in the R/extractors.R file. 
 The general principle is this:
-The important infomration is at the top of the file, that is probably in the first
+
+
+The important information is at the top of the file, that is probably in the first
 20 lines. In those lines, search for the line with a keyword, remove that
 keyword, return the result without leading and trailing spaces. Deal with
 not finding results.
@@ -147,8 +148,15 @@ get_source <- function(lines){
 ```
 
 However to extract the voices I had to work a bit harder.
-I've used the same approach as in the [TNG project](a link to that project), 
+I've used the same approach as in the [TNG project](https://github.com/RTrek/startrekTNGdataset), 
 and searched for characteristics in the file, and then combined the results.
 
+So here is what I did (see also the [extractorsfile](extractors.R) in no particular order:
+
+* remove all empty lines
+* find lines that start with capitals and are not EPISODE etc. and so are the hosts, f.i.: LEO, STEVE and extract the text only
+* Find hostnames and unify their names (the file calls their full name first and first or title later: LEO LAPORTE = LEO, PADRE = FATHER ROBERT BALLECER)
+* create a linenumber
+* combine the lines that belong together (if someone has multiple paragraphs I throw them together)
 
 
