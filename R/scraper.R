@@ -28,7 +28,7 @@ download_file <- function(file){
     }
 }
 
-latest_episode <- 655
+latest_episode <- 664
 #downloading
 walk(paste0("https://www.grc.com/sn/sn-",
            formatC(1:latest_episode, width = 3,flag = 0),".txt"), download_file)

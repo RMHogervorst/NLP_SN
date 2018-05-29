@@ -83,7 +83,7 @@ extract_voices <- function(lines){
     # indicators
     startlines <- grep("^[A-Z]{2,}",lines_final)
     stoplines <- startlines -1    #logically the one before the start is stop
-    stoplines<-stoplines[-1]   # the first one cannot be 0
+    stoplines <-stoplines[-1]   # the first one cannot be 0
     stoplines <- stoplines[!stoplines %in% startlines]   # remove the ones that are the same
     # ik wil een set van indexen
     # 1:2

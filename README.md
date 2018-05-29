@@ -1,13 +1,15 @@
 README
 ================
 
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+
 In this project I will apply some text (NLP ) analyses on all the transcripts from security now (SN) episodes.
 
-SN is a highly informative podcast by Steve Gibson and Leo Laporte about security related news and or explanations of concepts. The series is long running for almost 13 years at the time of writing.
+SN is a highly informative podcast by Steve Gibson and Leo Laporte about security related news and or explanations of concepts. The series is long running for almost 13 years at the time of writing. In the early years there were entire episodes dedicated to a certain topic, later on the security related news has taken more of a foreground.
 
 Steve has someone transcribe all of the audio files, that means we can use NLP tools to analyze all of the text.
 
-I've only listened to the last few years.
+I've only listened to the last few years so that is what I'm most interested in.
 
 What does the data look like?
 -----------------------------
@@ -39,13 +41,13 @@ As you can see this text is very structured and is somewhat easily parsed into a
 This project has two parts:
 
 -   build a [scraper](SCRAPER_description.md) that downloads/ reads in all of the text
-    -   iterate through all of the links
-    -   extract the metadata on top of the file (Date, Title, speakers, sourcefile, Description)
-    -   a row per sentence
+    -   \[x\] iterate through all of the links (don't download if you already have it)
+    -   \[x\] extract the metadata on top of the file (Date, Title, speakers, sourcefile, Description)
+    -   \[x\] a row per sentence
 -   build cool stuff on top of this file
     -   classifier that predicts who speaks?\*
-    -   sentiment analyses per episode, per season
-    -   bot that talks like Steve and Leo\*
+    -   \[x\] sentiment analyses per episode, per season
+    -   \[x\] bot that talks like Steve and Leo\*
     -   topic model or word2vec\*
     -   network analysis of words
 
