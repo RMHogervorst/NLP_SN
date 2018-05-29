@@ -1,7 +1,7 @@
 README
 ================
 
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![Last-changedate](https://img.shields.io/badge/last%20change-2018--05--29-yellowgreen.svg)](/commits/master) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](http://choosealicense.com/licenses/mit/)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![Last-changedate](https://img.shields.io/badge/last%20change-2018--05--29-yellowgreen.svg)](/commits/master) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](http://choosealicense.com/licenses/mit/) The transcripts are licenced on the [creative commons by nc-sa 2.5 licence](https://creativecommons.org/licenses/by-nc-sa/2.5/) ![](README_files/by-nc-sa.png)
 
 In this project I will apply some text (NLP ) analyses on all the transcripts from security now (SN) episodes.
 
